@@ -1,0 +1,10 @@
+foo, printf, CallExpr
+foo, boo, CallExpr
+foo, boo, CallExpr
+goo, printf, CallExpr
+goo, foo, CallExpr
+goo, boo, CallExpr
+goo, printf, CallExpr
+boo, printf, CallExpr
+boo, printf, CallExpr
+boo, printf, CallExpr
