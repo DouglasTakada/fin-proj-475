@@ -9,16 +9,17 @@ typedef struct node{
     char src_idx[50];
     char dest_idx[50];
     char edge_type[50];
+    bool does_ret;
     struct node *next;
 }Node;
 
-// typedef struct dict_node{
-//     char name[50];
-//     struct dict_node *next;
-// }D_Node;
+typedef struct dict_node{
+    char name[50];
+    struct dict_node *next;
+}D_Node;
 
 Node *head = NULL;
-//D_Node *dict_head = NULL;
+D_Node *dict_head = NULL;
 
 void add_node(const char* x, const char* y, const char* edge_type){
     Node * new_node = NULL;
@@ -56,6 +57,17 @@ void clean_list(){
     }
 }
 
+bool is_external(char * dest){
+    D_Node * dict_current = dict_head;
+    while(dict_current != NULL){
+        if(strcmp(dict_current->name, dest) == 0){
+            return false;
+        }
+        dict_current = dict_current->next;
+    }
+    return true;
+}
+
 void restructure_list(){
     if (head != NULL){
         Node * current = head;
@@ -63,7 +75,9 @@ void restructure_list(){
         while (current != NULL){
             if (strcmp(current->src_idx, "") != 0){
                 strcpy(cur_src, current->src_idx);
-            }else if(strcmp(current->dest_idx, "") != 0){
+            }else if (strcmp(current->edge_type, "ReturnStmt") == 0){
+                add_node(current->dest_idx, cur_src, current->edge_type);
+            }else if(strcmp(current->dest_idx, "") != 0 && is_external(current->dest_idx) == 0){
                 add_node(cur_src, current->dest_idx, current->edge_type);
             }
             current = current->next;
@@ -108,49 +122,49 @@ void write_list(){
     fclose(fpt);
 }
 
-// void dict_add_node(const char* x){
-//     D_Node * new_node = NULL;
-//     new_node = (D_Node *) malloc(sizeof(D_Node));
+void dict_add_node(const char* x){
+    D_Node * new_node = NULL;
+    new_node = (D_Node *) malloc(sizeof(D_Node));
     
-//     strcpy(new_node->name,x);
-//     if(strcmp(x, "") != 0){
-//         char * token;
-//         token = strtok(new_node->name, "(");
-//         strcpy(new_node->name,token);
-//     }
+    strcpy(new_node->name,x);
+    if(strcmp(x, "") != 0){
+        char * token;
+        token = strtok(new_node->name, "(");
+        strcpy(new_node->name,token);
+    }
 
-//     if(dict_head == NULL){
-//         dict_head = new_node;
-//     } else{
-//         D_Node * current = dict_head;
-//         while (current->next != NULL) {
-//             current = current->next;
-//         }
-//         current->next = new_node;
-//     }
-// }
+    if(dict_head == NULL){
+        dict_head = new_node;
+    } else{
+        D_Node * current = dict_head;
+        while (current->next != NULL) {
+            current = current->next;
+        }
+        current->next = new_node;
+    }
+}
 
-// void delete_dict_list(){
-//     char current_func[50] = "";
-//     if(dict_head != NULL){
-//         D_Node * current = dict_head;
-//         current = current->next;
-//         dict_head->next = NULL;
-//         free(dict_head);
+void delete_dict_list(){
+    char current_func[50] = "";
+    if(dict_head != NULL){
+        D_Node * current = dict_head;
+        current = current->next;
+        dict_head->next = NULL;
+        free(dict_head);
 
-//         while (current != NULL) {
-//             dict_head = current;
-//             current = current->next;
-//             dict_head->next = NULL;
-//             free(dict_head);
-//         }
-//     }
-// }
+        while (current != NULL) {
+            dict_head = current;
+            current = current->next;
+            dict_head->next = NULL;
+            free(dict_head);
+        }
+    }
+}
 
-// void print_dict_list(){
-//     D_Node * current = dict_head;
-//     while(current != NULL){
-//         printf("Function: %s\n",current->name);
-//         current = current->next;
-//     }
-// }
+void print_dict_list(){
+    D_Node * current = dict_head;
+    while(current != NULL){
+        printf("Function: %s\n",current->name);
+        current = current->next;
+    }
+}
