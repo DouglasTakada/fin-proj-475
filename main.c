@@ -52,15 +52,10 @@ int main(int argc, char** argv) {
     while(cur != NULL){
         index = clang_createIndex(0, 0);
         tu = clang_parseTranslationUnit(index, cur->name, nullptr, 0, nullptr, 0, CXTranslationUnit_None);
-        // if (tu == nullptr) {
-        //     printf("Unable to parse translation unit. Quitting.\n");
-        //     return 1;
-        // }
         cursor = clang_getTranslationUnitCursor(tu);
         visit_children(cursor, tu);
         cur = cur->next;
     }
-    //delete_dict_list();
 
     printf("End of header file analysis\n");
     index = clang_createIndex(0, 0);

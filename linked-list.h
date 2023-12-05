@@ -156,6 +156,7 @@ void write_list(){
         current = current->next;
     }
     fclose(fpt);
+    printf("Successfully Wrote to edgelist.csv!\n");
 }
 
 void dict_add_node(const char* x, const char* ret_type){
