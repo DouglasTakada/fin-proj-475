@@ -10,20 +10,22 @@ enum CXChildVisitResult visitor(CXCursor cursor, CXCursor parent, CXClientData c
     CXCursorKind cursor_kind = clang_getCursorKind(cursor);
     CXString cursor_display_name = clang_getCursorDisplayName(cursor);
 
-    if (cursor_kind == CXCursor_ClassDecl) {  // CLASS
-        //printf("Class: %s\n", clang_getCString(cursor_display_name));
-    } else if (cursor_kind == CXCursor_FunctionDecl) {  // FUNCTION
-        //printf("Function: %s\n", clang_getCString(cursor_display_name));
+    if (cursor_kind == CXCursor_FunctionDecl) {  // FUNCTION DECLERATION
+        //printf("Function Decl: %s\tReturn Type: %s\n",
+        //    clang_getCString(cursor_display_name),
+        //    clang_getCString(clang_getTypeSpelling(clang_getResultType(clang_getCursorType(cursor)))));
+
         add_node(clang_getCString(cursor_display_name), "", clang_getCString(clang_getCursorKindSpelling(cursor_kind)));
-        dict_add_node(clang_getCString(cursor_display_name));
+        dict_add_node(clang_getCString(cursor_display_name), clang_getCString(clang_getTypeSpelling(clang_getResultType(clang_getCursorType(cursor)))));
     } else if(cursor_kind == CXCursor_CallExpr) {  // FUNCTION CALL
         //printf("Function call: %s\n", clang_getCString(cursor_display_name));
         
         add_node("", clang_getCString(cursor_display_name), clang_getCString(clang_getCursorKindSpelling(cursor_kind)));
-    } else if (cursor_kind == CXCursor_ReturnStmt){
-        add_node("", "", clang_getCString(clang_getCursorKindSpelling(cursor_kind)));
     }
-    //printf("Name: %s\t Kind: %d\n", clang_getCString(cursor_display_name), cursor_kind);
+    //printf("Name: %s\t Kind: %s\treturn Type: %s\n",
+    //   clang_getCString(cursor_display_name),
+    //   clang_getCString(clang_getCursorKindSpelling(cursor_kind)),
+    //   clang_getCString(clang_getTypeSpelling(clang_getResultType(clang_getCursorType(cursor)))));
 
     clang_disposeString(cursor_display_name);
 
@@ -40,21 +42,41 @@ int main(int argc, char** argv) {
         printf("Please provide a C source code file.\n");
         return 1;
     }
+    find_dependencies(argv[1]);
+    print_dict_list();
 
-    CXIndex index = clang_createIndex(0, 0);
-    CXTranslationUnit tu = clang_parseTranslationUnit(index, argv[1], nullptr, 0, nullptr, 0, CXTranslationUnit_None);
+    CXIndex index;
+    CXTranslationUnit tu;
+    CXCursor cursor;
+    D_Node *cur = dict_head;
+    while(cur != NULL){
+        index = clang_createIndex(0, 0);
+        tu = clang_parseTranslationUnit(index, cur->name, nullptr, 0, nullptr, 0, CXTranslationUnit_None);
+        // if (tu == nullptr) {
+        //     printf("Unable to parse translation unit. Quitting.\n");
+        //     return 1;
+        // }
+        cursor = clang_getTranslationUnitCursor(tu);
+        visit_children(cursor, tu);
+        cur = cur->next;
+    }
+    //delete_dict_list();
+
+    printf("End of header file analysis\n");
+    index = clang_createIndex(0, 0);
+    tu = clang_parseTranslationUnit(index, argv[1], nullptr, 0, nullptr, 0, CXTranslationUnit_None);
     if (tu == nullptr) {
         printf("Unable to parse translation unit. Quitting.\n");
         return 1;
     }
-    CXCursor cursor = clang_getTranslationUnitCursor(tu);
+    cursor = clang_getTranslationUnitCursor(tu);
     visit_children(cursor, tu);
 
     clang_disposeTranslationUnit(tu);
     clang_disposeIndex(index);
 
     
-    //restructure_list();
+    restructure_list();
     print_dict_list();
     print_list();
     write_list();
